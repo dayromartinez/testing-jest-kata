@@ -30,7 +30,6 @@ export const createEvent = ( weekday, week, openHour, closeHour ) => {
     const currentDay = new Date().getDay();
     const hour = new Date().getHours();
     const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
-   
 
     function addDays(days) {
         return new Date(new Date().setDate(new Date().getDate() + days));
@@ -44,7 +43,7 @@ export const createEvent = ( weekday, week, openHour, closeHour ) => {
     }
 
     const date = getDateCalendar(numDay, currentDay);
-   
+
     return {
         title: "[SOFKA U] Meeting Room",
         description: "Mentoring and Practice",
@@ -52,4 +51,49 @@ export const createEvent = ( weekday, week, openHour, closeHour ) => {
         date: new Date(date).toLocaleDateString('es-ES', options),
         duration: [closeHour - openHour, "hour"]
     };
+}
+
+export const createEventList = (weekday, week, openHour, closeHour, iteraciones = 0, lista = []) => {
+
+    if((closeHour - openHour) < 0){
+        throw new Error("Argumento ilegal en el horario de entrada.");
+    }
+
+    if(week < 0){
+        throw new Error("Argumento ilegal para la semana, debe ser un valor positivo.");
+    }
+
+    if(!Object.keys(NUM_DAY).some(key => key === weekday)){
+        throw new Error("Argumento ilegal el dia de la semana, valores posibles; 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' y 'sun'.");
+    }
+
+    if(iteraciones < 10){
+        const numDay = NUM_DAY[weekday];
+        const currentDay = new Date().getDay();
+        const hour = new Date().getHours();
+        const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+
+        function addDays(days) {
+            return new Date(new Date().setDate(new Date().getDate() + days));
+        }
+
+        function getDateCalendar(numDay, currentDay) {
+            if (numDay >= currentDay && parseInt(closeHour) >= hour) {//posterior a dia de la semana
+                return addDays((numDay - currentDay) + 7 * (week - 1));
+            }
+            return addDays((numDay - currentDay) + 7 * (week - 1));
+        }
+
+        const date = getDateCalendar(numDay, currentDay);
+        lista.push({
+            title: "[SOFKA U] Meeting Room",
+            description: "Mentoring and Practice",
+            start: date,
+            date: new Date(date).toLocaleDateString('es-ES', options),
+            duration: [closeHour - openHour, "hour"]
+        });
+        return createEventList( weekday, week, openHour, closeHour, iteraciones + 1, lista)
+    }else{
+        return lista;
+    }
 }
